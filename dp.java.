@@ -1,0 +1,107 @@
+1. unique paths---------------------------------->前两道题滚动数组:滚动数组要是二维数组一般就得留两行，然后对于行量取%2
+  public int uniquePaths(int m, int n) {
+        // write your code here 
+        int[][] f = new int[2][n];
+        //f[i][j]:number of paths to arrive [m - 1][n - 1]
+    
+        for(int i = 0; i < 2; i++){
+            f[i][0] = 1;
+        }
+        for(int i = 0; i < n; i++){
+            f[0][i] = 1;
+        }
+        
+        for(int i = 1; i < m; i++){
+            for(int j = 1; j < n; j++){
+                f[i%2][j] = f[i%2][j - 1] + f[(i - 1)%2][j];
+            }
+        }
+        return f[(m-1)%2][n-1];
+    }
+2. unique paths II
+就是遇到1就不能走了
+ public int uniquePathsWithObstacles(int[][] obstacleGrid) {
+        // write your code here
+        if(obstacleGrid == null || obstacleGrid.length == 0){
+            return 0;
+        }
+        
+      
+        int m = obstacleGrid.length;
+        int n = obstacleGrid[0].length;
+        //记得单独讨论只有一个点，且为1
+        if(m == 1 && n == 1 && obstacleGrid[0][0] == 1){
+            return 1;
+        }
+        int[][] f = new int[m][n];
+        for(int i = 0; i < m; i++){
+            if(obstacleGrid[i][0] == 1){
+                f[i][0] = 0;
+                break;
+            }
+            f[i][0] = 1; 
+        }
+        for(int i = 0; i < n; i++){
+            //这个地方要写成obstacleGrid[i][0] == 1而不是f[][]
+            if(obstacleGrid[0][i] == 1){
+                f[0][i] = 0;
+                break;
+            }
+            f[0][i] = 1;
+        }
+        for(int i = 1; i < m; i++){
+            for(int j = 1; j < n; j++){
+                if(obstacleGrid[i][j] == 1){
+                    f[i][j] = 0;
+                }
+                else{
+                    f[i][j] = f[i][j - 1] + f[i - 1][j];
+                }
+            }
+        }
+        return f[m - 1][n - 1];
+    }
+3. climbing stairs
+注意int输入的时候无需讨论n是否为null，而且这道题要考虑n==0直接return
+因为要不然f[1] = 1写出来的时候就相当于超界了
+然后滚动数组！
+ public int climbStairs(int n) {
+        // write your code here
+        // if(n == null){
+        //     return 0;
+        // }
+        if(n == 0){
+            return 1;
+        }
+        int[] f = new int[3];
+        f[0] = 1;
+        f[1] = 1;
+        for(int i = 2; i <= n; i++){
+            f[i%3] = f[(i - 1)%3] + f[(i - 2)%3];
+        }
+        return f[n%3];
+    }
+4. minimum path sum
+ public int minPathSum(int[][] grid) {
+        // write your code here
+        if(grid == null || grid.length == 0){
+            return 0;
+        }
+        int m = grid.length;
+        int n = grid[0].length;
+        int[][] f = new int[m][n];
+        //注意f[0][0]要单独弄出来赋值 要不然就冒了
+        f[0][0] = grid[0][0];
+        for(int i = 1; i < n; i++){
+            f[0][i] = f[0][i - 1] + grid[0][i];
+        }
+        for(int i = 1; i < m; i++){
+            f[i][0] = f[i - 1][0] + grid[i][0];
+        }
+        for(int i = 1; i < m; i++){
+            for(int j = 1; j < n; j++){
+                f[i][j] = Math.min(f[i][j - 1], f[(i - 1)][j]) + grid[i][j];
+            }
+        }
+        return f[(m - 1)][n - 1];
+    }
