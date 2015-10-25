@@ -246,3 +246,203 @@ public int minimumTotal(int[][] triangle) {
         return count;
     
     }
+--------------------------------------------------------------------------------------------------------------
+Oct.24
+--------------------------------------------------------------------------------------------------------------
+8. word break
+dp,没有string的时候得返回true，为了后面的两个for做准备。因为dict中最长的词也没多长，
+所以先把dict中最长的词长度求出来
+然后注意一下string中substring的使用，判断最后那个数是不是==.length() - 1-->substring(i)/substring(i, j + 1)
+public boolean wordBreak(String s, Set<String> dict) {
+        // write your code here   
+        if(s == null || s.length() == 0){
+            return true;
+        }
+        //f[i]: whether first i elements can be broken into words
+        boolean[] f = new boolean[s.length() + 1];
+        f[0] = true;
+        int m = 0;
+        for(String x: dict){
+            m = Math.max(m, x.length());
+        }
+        for(int i = 1; i <= s.length(); i++){
+            //.....j-1[j....i - 1]----these are index
+            for(int j = i - 1; j >= 0 && i - j <= m; j--){
+                if(f[j] && isWord(s, j, i - 1, dict)){
+                    f[i] = true;
+                    break;
+                }
+            }
+        }
+        return f[s.length()];
+    }
+    private boolean isWord(String s, int i, int j, Set<String> dict){
+        if(s == null){
+            return true;
+        }
+        if(i > j){
+            return false;
+        }
+        if(j == s.length() - 1){
+            return dict.contains(s.substring(i));
+        }
+        return dict.contains(s.substring(i, j + 1));
+    }
+9. palindrome partitionaing II
+给定一个string，看把这个string都切成palindrome最少需要多少步
+这里需要注意的是f[0] = -1因为后面for的需要，就是比如给定一个string是abba，f[4] = f[0] + 1实际上不需要切，即f[4] = 0
+所以f[0] = -1
+public int minCut(String s) {
+        // write your code here
+        if(s == null || s.length() == 0){
+            return 0;
+        }
+        //num of min cuts needed for the first i elements
+        int[] f = new int[s.length() + 1];
+        f[0] = -1;
+        for(int i = 1; i <= s.length(); i++){
+            f[i] = i - 1;
+            for(int j = 0; j < i; j++){
+                if(isPalindrome(j, i - 1, s)){
+                    f[i] = Math.min(f[i], f[j] + 1);
+                }
+            }
+        }
+        return f[s.length()];
+    }
+    private boolean isPalindrome(int start, int end, String s){
+        if(s == null || s.length() <= 1 || start == end){
+            return true;
+        }
+        if(start > end || end > s.length() - 1){
+            return false;
+        }
+        for(int i = start, j = end; i < j; i++, j--){
+            if(s.charAt(i) != s.charAt(j)){
+                return false;
+            }
+        }
+        return true;
+    }
+10. longest increasing subsequence
+给一个数组[54123] LIS 表示位置不变的递增（取等也ok，要跟面试官确认）子序列，这个子序列他们之间不一定要连续
+这题第二个for从j = 1开始就ok，然后f[i]附了初值都是1，然后记得返回的是max，而不是f[nums.legnth]
+public int longestIncreasingSubsequence(int[] nums) {
+        // write your code here
+        if(nums == null || nums.length == 0){
+            return 0;
+        }
+        //f[i] num of longest increasing subsequence that ends at the ith element
+        int[] f = new int[nums.length + 1];
+        f[0] = 0;
+        f[1] = 1;
+        int max = 0;
+        for(int i = 2; i <= nums.length; i++){
+            f[i] = 1;
+            for(int j = 1; j < i; j++){
+                if(nums[i - 1] >= nums[j - 1]){
+                f[i] = Math.max(f[i], f[j] + 1);
+                }
+            }
+            max = Math.max(max, f[i]);
+        }
+        return max;
+    }
+11. edit distance
+给定两个单词，可以insert/delete,replace求至少需要edit多少次可以把他们变成一样的
+f[][]表示第一个单词的前i个字母跟第二个单词的前j个单词匹配需要多少edit
+algorithm:if 那两个单词相同----f[i][j] = Math.min(Math.min(f[i][j - 1], f[i - 1][j]) + 1,f[i - 1][j - 1]);
+不同：f[i][j] = Math.min(f[i - 1][j], Math.min(f[i][j - 1], f[i - 1][j - 1])) + 1;
+public int minDistance(String word1, String word2) {
+        // write your code here
+        if(word1 == null || word1.length() == 0){
+            return word2.length();
+        }
+        if(word2 == null || word2.length() == 0){
+            return word1.length();
+        }
+        //f[][]: num of edit for first i elements in word1, and first j elements in word2
+        int[][] f = new int[word1.length() + 1][word2.length() + 1];
+        for(int i = 0; i <= word1.length(); i++){
+            f[i][0] = i;
+        }
+        for(int i = 0; i <= word2.length(); i++){
+            f[0][i] = i;
+        }
+        for(int i = 1; i <= word1.length(); i++){
+            for(int j = 1; j <= word2.length(); j++){
+                if(word1.charAt(i - 1) == word2.charAt(j - 1)){
+                    f[i][j] = Math.min(Math.min(f[i][j - 1], f[i - 1][j]) + 1,f[i - 1][j - 1]);
+                }
+                else{
+                    f[i][j] = Math.min(f[i - 1][j], Math.min(f[i][j - 1], f[i - 1][j - 1])) + 1;
+                }
+            }
+        }
+        return f[word1.length()][word2.length()];
+    }
+12. longest common substring
+就是给定两个string，找最长公共子序列，必须连续
+f[i][j] 表示以i,j结尾的前i个，前j个最长公共子序列的个数
+f[i][j] = f[i - 1][j - 1] + 1;\0
+注意结果是要取max
+  public int longestCommonSubstring(String A, String B) {
+        // write your code here
+        if(A == null || A.length() == 0 || B == null || B.length() == 0){
+            return 0;
+        }
+        //f[][]: longest common substring for first i letters in A, first j letters in B
+        int[][] f = new int[A.length() + 1][B.length() + 1];
+        for(int i = 0; i <= A.length(); i++){
+            f[i][0] = 0;
+        }
+        for(int j = 0; j <= B.length(); j++){
+            f[0][j] = 0;
+        }
+        //max: longest substring
+        int max = 0;
+        for(int i = 1; i <= A.length(); i++){
+            for(int j = 1; j <= B.length(); j++){
+                if(A.charAt(i - 1) == B.charAt(j - 1)){
+                    //since the last element has to be included in the substring
+                    f[i][j] = f[i - 1][j - 1] + 1;
+                }
+                else{
+                    f[i][j] = 0; 
+                }
+                max = Math.max(max, f[i][j]);
+            }
+            
+        }
+        return max;  
+    }
+13. longest common subsequence
+这个和上个题不同的地方就是substring需要连续的，这个不用
+所以substring是以i,j为结尾，所以转换方程是f[i - 1][j - 1] + 1/0
+这个f[i - 1][j - 1] + 1/f[i - 1][j], f[i][j - 1]
+public int longestCommonSubsequence(String A, String B) {
+        // write your code here
+        if(A == null || A.length() == 0 || B == null || B.length() == 0){
+            return 0;
+        }
+        int[][] f = new int[A.length() + 1][B.length() + 1];
+        for(int i = 0; i <= A.length(); i++){
+            f[i][0] = 0;
+        }
+        for(int i = 0; i <= B.length(); i++){
+            f[0][i] = 0;
+        }
+        int max = 0;
+        for(int i = 1; i <= A.length(); i++){
+            for(int j = 1; j <= B.length(); j++){
+                if(A.charAt(i - 1) == B.charAt(j - 1)){
+                    f[i][j] = f[i - 1][j - 1] + 1;
+                }
+                else{
+                    f[i][j] = Math.max(f[i - 1][j], f[i][j - 1]);
+                }
+                max = Math.max(max, f[i][j]);
+            }
+        }
+        return max;
+    }
